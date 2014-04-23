@@ -20,7 +20,6 @@ local encoders = {
     msgpack = mp_encode
 }
 
-local function msgpack_encode(data
 --- create a new logger.
 -- @tparam table opts a table of options. valid fields are:
 -- * `codec` string. `json` or `msgpack`. defaults to `json`
