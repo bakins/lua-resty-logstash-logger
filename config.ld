@@ -1,0 +1,6 @@
+format = "discount"
+examples = "./examples/"
+dir = "./"
+title = "lua-resty-logstash-logger reference"
+file = "./lib/resty/logstash"
+readme = "README.md"
