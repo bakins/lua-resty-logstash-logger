@@ -3,11 +3,6 @@
 local insert = table.insert
 local concat = table.concat
 
-local cjson = require "cjson"
-local cjson_encode = cjson_encode
-
-local mp = require "MessagePack"
-local mp_encode = mp.pack
 local redis = require "resty.redis"
 
 local _M = {}
@@ -17,27 +12,45 @@ _M._VERSION = '0.1.0'
 local _mt = { __index = _M }
 
 local encoders = {
-    json = cjson_encode,
-    msgpack = mp_encode
+    json = require("cjson").encode,
+    msgpack = require("MessagePack").pack
 }
 
 local function redis_pusher(self, server, data)
+
     local red = redis:new()
+
     red:set_timeout(self.timeout)
+
     local ok, err = red:connect(server.host, server.port)
     if not ok then
         return nil, err
     end
+
     red:init_pipeline()
     local key = self.key
+
+    local ok, err = red:multi()
+    if not ok then
+        return nil, err
+    end
+
     for _,v in ipairs(data) do
         red:lpush(key, v)
     end
+
+    local ok, err = red:exec()
+    if not ok then
+         return nil, err
+    end
+
     local results, err = red:commit_pipeline()
     if not results then
         return nil, err
     end
+
     red:set_keepalive()
+
     return true
 end
 
