@@ -76,7 +76,7 @@ local function next_server(self)
     return self.servers[i]
 end
 
-locla tcp = ngx.socket.tcp
+local tcp = ngx.socket.tcp
 local flush_buffer
 flush_buffer=function(premature, self)
     local buffer = self.buffer
@@ -106,13 +106,13 @@ flush_buffer=function(premature, self)
     end
 
     if not premature then
-        ngx.timer.at(delay, handler)
+        ngx.timer.at(self.interval, handler)
     end
 end
 
---- log data.  The logger will add the required logstash fields to data. Note: this actually adds to an internal buffer and the data is written at `interval` via a timer.
+--- log data.  The logger will add the required logstash fields to data. Note: this actually adds to an internal buffer and the data is written at `interval` via a timer. Also, this will modify data.
 -- @tparam resty.logstash.logger self
--- @tparam data table data to log
+-- @tparam table data
 function _M.log(self, data)
 
     if not self.timer_started then
@@ -122,6 +122,7 @@ function _M.log(self, data)
         end
     end
 
+    -- TODO: add fields required by logstash
     local data, err = self.encoder(data)
     if not data then
         return nil, err
