@@ -41,6 +41,10 @@
 <ul class="$(kind=='Topics' and '' or 'nowrap'">
   <li><a href="topics/README.md.html">README</a></li>
 </ul>
+<h2>Examples</h2>
+<ul class="$(kind=='Topics' and '' or 'nowrap'">
+  <li><a href="examples/redis.lua.html">redis.lua</a></li>
+</ul>
 
 </div>
 
@@ -59,7 +63,7 @@
 	<td class="summary">create a new logger.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#log">log (self, table)</a></td>
+	<td class="name" nowrap><a href="#log">log (self, data)</a></td>
 	<td class="summary">log data.</td>
 	</tr>
 </table>
@@ -87,7 +91,9 @@
  </em> <code>servers</code> table. A list of servers in the form: <code>{ { host: &ldquo;ipaddress&rdquo;, port: port } }</code>
  <em> <code>interval</code> number &ndash; how often to attempt to push the log buffer to logstash servers in seconds. defaults to 30
  </em> <code>retries</code> number &ndash; how many times to retry. If the logger gets an error writing to a server, it will select another and retry. After <code>retries</code> times, the data buffer is flushed and an error is logged locally. defaults to the number of servers.
- * <code>timeout</code> number &ndash; timeout in ms for all socket operations. defaults to 1000
+ <em> <code>timeout</code> number &ndash; timeout in ms for all socket operations. defaults to 1000
+ </em> <a href="http://www.lua.org/manual/5.1/manual.html#pdf-type">type</a>  string &ndash; either <code>redis</code> or <code>logstash</code>. defaults to <code>logstash</code>
+ * <code>key</code> string &ndash; only needed when pushing to redis, this is the key to push to. defaults to <code>logstash</code>
         </li>
     </ul>
 
@@ -104,10 +110,10 @@
 </dd>
     <dt>
     <a name = "log"></a>
-    <strong>log (self, table)</strong>
+    <strong>log (self, data)</strong>
     </dt>
     <dd>
-    log data.   The logger will add the required logstash fields to data. Note: this actually adds to an internal buffer and the data is written at <code>interval</code> via a timer.
+    log data.   The logger will add the required logstash fields to data. Note: this actually adds to an internal buffer and the data is written at <code>interval</code> via a timer. Also, this will modify data.
 
 
     <h3>Parameters:</h3>
@@ -117,9 +123,10 @@
 
 
         </li>
-        <li><span class="parameter">table</span>
-            <span class="types"><span class="type">data</span></span>
-         data to log
+        <li><span class="parameter">data</span>
+            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+
+
         </li>
     </ul>
 

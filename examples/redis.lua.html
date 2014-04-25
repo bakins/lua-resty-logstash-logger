@@ -29,24 +29,38 @@
 
 
 
-<h2>Topics</h2>
+<h2>Examples</h2>
 <ul class="$(kind=='Topics' and '' or 'nowrap'">
-  <li><strong>README</strong></li>
+  <li><strong>redis.lua</strong></li>
 </ul>
 <h2>Modules</h2>
 <ul class="$(kind=='Topics' and '' or 'nowrap'">
   <li><a href="../index.html">logger</a></li>
 </ul>
-<h2>Examples</h2>
+<h2>Topics</h2>
 <ul class="$(kind=='Topics' and '' or 'nowrap'">
-  <li><a href="../examples/redis.lua.html">redis.lua</a></li>
+  <li><a href="../topics/README.md.html">README</a></li>
 </ul>
 
 </div>
 
 <div id="content">
 
+    <pre>
+<span class="comment">-- you would probably do this in an init_by_lua loaded
+</span><span class="comment">-- module.
+</span><span class="keyword">local</span> logger = <span class="global">require</span> <span class="string">"resty.logstash.logger"</span>
 
+<span class="keyword">local</span> l = logger.new({
+                         codec = <span class="string">"json"</span>,
+                         servers = { { host = <span class="string">"127.0.0.1"</span>, port = <span class="number">6379</span> } },
+                         interval = <span class="number">0.001</span>,
+                         <span class="global">type</span> = <span class="string">"redis"</span>
+                     })
+
+<span class="keyword">local</span> rc = l:log({ uri = ngx.uri })
+
+ngx.say(rc)</pre>
 
 
 </div> <!-- id="content" -->
