@@ -9,6 +9,6 @@ local l = logger.new({
                          type = "redis"
                      })
 
-local rc = l:log({ uri = ngx.uri })
+local rc = l:log({ uri = ngx.var.uri })
 
 ngx.say(rc)
