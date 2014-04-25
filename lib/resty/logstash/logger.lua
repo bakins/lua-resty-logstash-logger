@@ -2,6 +2,7 @@
 
 local insert = table.insert
 local concat = table.concat
+local remove = table.remove
 
 local redis = require "resty.redis"
 
@@ -24,31 +25,30 @@ local function redis_pusher(self, server, data)
 
     local ok, err = red:connect(server.host, server.port)
     if not ok then
-        return nil, err
+        return nil, "redis connect failed: " .. err
     end
 
     red:init_pipeline()
     local key = self.key
 
-    local ok, err = red:multi()
-    if not ok then
-        return nil, err
-    end
+    red:multi()
 
     for _,v in ipairs(data) do
         red:lpush(key, v)
     end
 
-    local ok, err = red:exec()
-    if not ok then
-         return nil, err
-    end
+    red:exec()
 
     local results, err = red:commit_pipeline()
     if not results then
-        return nil, err
+        return nil, "redis commit_pipeline failed: " .. err
     end
 
+    -- the results of exec are the last value
+    local ok = remove(results, 1)
+    if not ok or ok ~= "OK" then
+        return nil, "redis exec failed"
+    end
     red:set_keepalive()
 
     return true
@@ -108,7 +108,7 @@ function _M.new(opts)
             return nil, "server must have a host"
         end
         -- make a copy as we may want to modify the table
-        insert(hosts, { host: v.host, port, v.port })
+        insert(hosts, { host = v.host, port = v.port })
     end
 
     local pusher = pushers[opts.type or "logstash"]
@@ -120,9 +120,9 @@ function _M.new(opts)
     local self = {
         servers = hosts,
         encoder = encoder,
-        timeout = opts.timeout or 1000
+        timeout = opts.timeout or 1000,
         num_servers = num_servers,
-        retries = opts.retries or num_servers
+        retries = opts.retries or num_servers,
         current_server = 1,
         interval = opts.interval or 30000,
         timer_started = false,
@@ -143,10 +143,11 @@ end
 
 local tcp = ngx.socket.tcp
 local flush_buffer
-flush_buffer=function(premature, self)
+flush_buffer = function(premature, self)
     local buffer = self.buffer
     local pusher = self.pusher
     if #buffer > 0 then
+
         local retries = self.retries
 
         repeat
@@ -154,6 +155,8 @@ flush_buffer=function(premature, self)
             local ok, err = pusher(self, next_server(self), buffer)
             if ok then
                 break
+            else
+                ngx.log(ngx.ERR, "pusher failed: ", err)
             end
             retries = retries - 1
         until retries < 0
@@ -165,7 +168,7 @@ flush_buffer=function(premature, self)
     self.buffer = {}
 
     if not premature then
-        ngx.timer.at(self.interval, handler)
+        ngx.timer.at(self.interval, flush_buffer, self)
     end
 end
 
